@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Симуляция ядерной цепной реакции</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #3f51b5;
+            color: white;
+            padding: 20px;
+        }
+        main {
+            margin: 20px auto;
+        }
+        #canvas-container {
+            margin: 0 auto;
+            width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Симуляция ядерной цепной реакции</h1>
+        <p>Наблюдайте за цепной реакцией деления ядер урана-235.</p>
+    </header>
+    <main>
+        <div id="canvas-container"></div>
+    </main>
+    <script>
+        let nuclei = [];
+        let neutrons = [];
+        const canvasWidth = 600;
+        const canvasHeight = 400;
+        let energyReleased = 0;
+
+        function setup() {
+            const canvas = createCanvas(canvasWidth, canvasHeight);
+            canvas.parent('canvas-container');
+            resetSimulation();
+        }
+
+        function draw() {
+            background(240);
+
+            // Отображение энергии
+            fill(50);
+            textSize(16);
+            text(`Высвобожденная энергия: ${energyReleased} единиц`, 10, 20);
+
+            // Отображение ядер
+            for (let i = nuclei.length - 1; i >= 0; i--) {
+                let nucleus = nuclei[i];
+                fill(255, 100, 100);
+                ellipse(nucleus.x, nucleus.y, 20, 20);
+
+                // Проверка столкновения с нейтронами
+                for (let j = neutrons.length - 1; j >= 0; j--) {
+                    let neutron = neutrons[j];
+                    let distance = dist(nucleus.x, nucleus.y, neutron.x, neutron.y);
+
+                    if (distance < 15) {
+                        // Удаление ядра и нейтрона
+                        nuclei.splice(i, 1);
+                        neutrons.splice(j, 1);
+
+                        // Высвобождение новых нейтронов
+                        for (let k = 0; k < 2; k++) {
+                            neutrons.push({
+                                x: nucleus.x,
+                                y: nucleus.y,
+                                dx: random(-2, 2),
+                                dy: random(-2, 2),
+                            });
+                        }
+
+                        // Увеличение энергии
+                        energyReleased += 10;
+                        break;
+                    }
+                }
+            }
+
+            // Отображение нейтронов
+            for (let neutron of neutrons) {
+                fill(100, 255, 100);
+                ellipse(neutron.x, neutron.y, 10, 10);
+
+                // Движение нейтрона
+                neutron.x += neutron.dx;
+                neutron.y += neutron.dy;
+
+                // Отражение от границ
+                if (neutron.x < 0 || neutron.x > width) neutron.dx *= -1;
+                if (neutron.y < 0 || neutron.y > height) neutron.dy *= -1;
+            }
+        }
+
+        function resetSimulation() {
+            nuclei = [];
+            neutrons = [];
+            energyReleased = 0;
+
+            // Генерация ядер
+            for (let i = 0; i < 30; i++) {
+                nuclei.push({
+                    x: random(50, width - 50),
+                    y: random(50, height - 50),
+                });
+            }
+
+            // Генерация начальных нейтронов
+            for (let i = 0; i < 3; i++) {
+                neutrons.push({
+                    x: random(50, width - 50),
+                    y: random(50, height - 50),
+                    dx: random(-2, 2),
+                    dy: random(-2, 2),
+                });
+            }
+        }
+
+        function mousePressed() {
+            resetSimulation();
+        }
+    </script>
+</body>
+</html>
